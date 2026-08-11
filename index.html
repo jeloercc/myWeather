@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather anywhere</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css" />
+</head>
+
+<body>
+
+  <header>
+    <h1>Weather anywhere</h1>
+
+    <!-- Semantic element for navigation -->
+    <nav>
+      <button id="nav-search">Search for a city</button>
+      <button id="nav-weather">Check here for weather</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- VIEW 1: SEARCH (endpoint)-->
+    <section id="search-view">
+      <h2>Search for a city</h2>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Type at least 2 letters..."
+        autocomplete="off"
+        />
+
+      <!-- show "loading..." or error messages here -->
+      <p id="search-message"></p>
+
+      <!--  render the list of found cities -->
+      <ul id="results"></ul>
+    </section>
+
+    <!-- VIEW 2: WEATHER (endpoint) -->
+    <section id="weather-view" hidden>
+      <h2 id="weather-title">Weather</h2>
+
+      <!--  weather errors here -->
+      <p id="weather-message"></p>
+
+      <!-- render the weather data here -->
+      <div id="weather-data"></div>
+    </section>
+
+  </main>
+
+  <script src="index.js"></script>
+</body>
+</html>

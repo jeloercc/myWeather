@@ -25,7 +25,7 @@ const searchInput = document.getElementById("search-input");
 const searchMessage = document.getElementById("search-message");
 const results = document.getElementById("results");
 
-/* API for cities that match the text */
+/* API 1 for cities that match the text */
 async function searchCities(text) {
   const url =
     "https://geocoding-api.open-meteo.com/v1/search?name=" +
@@ -61,19 +61,95 @@ function showCities(cities) {
 }
 
 /* The user types, search for cities */
-searchInput.addEventListener("input", async function () {
-  const text = searchInput.value.trim();
+let searchTimer;
 
-  const cities = await searchCities(text);
-  showCities(cities);
+searchInput.addEventListener("input", function () {
+  clearTimeout(searchTimer);
+
+  searchTimer = setTimeout(async function () {
+    const text = searchInput.value.trim();
+    const cities = await searchCities(text);
+    showCities(cities);
+  }, 400);
 });
 
 /* Called when the user clicks a city */
-function selectCity(city) {
+async function selectCity(city) {
   showWeatherView();
 
   const weatherTitle = document.getElementById("weather-title");
-  weatherTitle.textContent = "Weather in " + city.name;
+  const weatherMessage = document.getElementById("weather-message");
 
-  console.log("Selected city:", city.name, city.latitude, city.longitude);
+  weatherTitle.textContent = "Weather in " + city.name;
+  weatherMessage.textContent = "Loading...";
+
+  const data = await getWeather(city.latitude, city.longitude);
+
+  weatherMessage.textContent = "";
+  showWeather(data, city.name);
 }
+
+/* API 2 for the weather at these coordinates */
+async function getWeather(latitude, longitude) {
+  const url =
+    "https://api.open-meteo.com/v1/forecast?latitude=" +
+    latitude +
+    "&longitude=" +
+    longitude +
+    "&current=temperature_2m,weather_code" +
+    "&daily=temperature_2m_max,temperature_2m_min,weather_code" +
+    "&temperature_unit=fahrenheit" +
+    "&timezone=auto&forecast_days=5";
+  
+  const response = await fetch(url);
+  const data = await response.json();
+
+  return data;
+}
+
+/* WMO weather code into readable text */
+function weatherText(code) {
+  if (code === 0) return "Clear sky";
+  if (code <= 3) return "Partly cloudy";
+  if (code <= 48) return "Foggy";
+  if (code <= 67) return "Rainy";
+  if (code <= 77) return "Snowy";
+  if (code <= 82) return "Rain showers";
+  if (code <= 86) return "Snow showers";
+  return "Thunderstorm";
+}
+
+/* Draw the weather data on the screen */
+function showWeather(data, cityName) {
+  const weatherData = document.getElementById("weather-data");
+
+  const current = data.current;
+  const daily = data.daily;
+
+  /* Build the current weather block */
+  let html =
+    '<div class="weather-current">' +
+    '<div class="weather-temp">' + current.temperature_2m + "°F</div>" +
+    '<div class="weather-condition">' + weatherText(current.weather_code) + "</div>" +
+    "</div>";
+
+  /* Build the list of days */
+  html += '<div class="weather-days">';
+
+  for (let i = 0; i < daily.time.length; i++) {
+    html +=
+      '<div class="weather-day">' +
+      '<span class="weather-day-name">' + daily.time[i] + "</span>" +
+      '<span class="weather-day-info">' +
+      weatherText(daily.weather_code[i]) + " · " +
+      daily.temperature_2m_min[i] + "°F / " + 
+      daily.temperature_2m_max[i] + "°F" +
+      "</span>" +
+      "</div>";
+  }
+
+  html += "</div>";
+
+  weatherData.innerHTML = html;
+}
+
